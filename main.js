@@ -8,13 +8,16 @@ var app = http.createServer(function (request, response) {
   var _url = request.url;
   var queryData = url.parse(_url, true).query;
   var pathName = url.parse(_url, true).pathname;
-  var title = queryData.id;
+ 
   const ERROR_MESG = "NOT FOUND";
-  // console.log("url parse:"+ url.parse(_url, true));
-  // console.log("url parse.pathName:"+ url.parse(_url, true).pathname);
+
   if (pathName === '/') {
-    fs.readFile(`data/${title}`, 'UTF-8', (err, description) => {
-      var template = `
+    if (queryData.id === undefined) {
+      // fs.readFile(`data/${queryData.id}`, 'UTF-8', (err, description) => { 
+        // 읽어 오는게 없는데?
+        let title = "Welcome to World";
+        description = "Hello Node.js";
+        var template = `
     <!doctype html>
   <html>
   <head>
@@ -35,9 +38,38 @@ var app = http.createServer(function (request, response) {
   </body>
   </html>
     `;
-      response.writeHead(200);
-      response.end(template);
-    });
+        response.writeHead(200);
+        response.end(template);
+      // });
+    } else{
+      fs.readFile(`data/${title}`, 'UTF-8', (err, description) => {
+        let title = queryData.id;
+        var template = `
+      <!doctype html>
+    <html>
+    <head>
+      <title>WEB1 - ${title}</title>
+      <meta charset="utf-8">
+    </head>
+    <body>
+      <h1><a href="/">WEB</a></h1>
+      <ol>
+        <li><a href="/?id=HTML">HTML</a></li>
+        <li><a href="/?id=CSS">CSS</a></li>
+        <li><a href="/?id=JavaScript">JavaScript</a></li>
+      </ol>
+      <h2>${title}</h2>
+     <p>
+     ${description}
+     </p>
+    </body>
+    </html>
+      `;
+        response.writeHead(200);
+        response.end(template);
+      });
+    }
+   
   } else {
     response.writeHead(404);
     response.end(ERROR_MESG);
