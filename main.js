@@ -12,7 +12,7 @@ var app = http.createServer(function (request, response) {
   if (pathName === '/') {
     if (queryData.id === undefined) {
         let title = 'Welcome';
-        description = "Hello node.js";
+        let description = "Hello node.js";
         var template = `
         <!doctype html>
       <html>
@@ -38,8 +38,7 @@ var app = http.createServer(function (request, response) {
         response.end(template);
     } else {
       fs.readFile(`data/${title}`, 'UTF-8', (err, description) => {
-        let title = 'Welcome';
-        description = "Hello node.js";
+        let title = queryData.id;
         var template = `
         <!doctype html>
       <html>
