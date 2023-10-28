@@ -14,6 +14,7 @@ function templateHTML(title, list, body) {
   <body>
     <h1><a href="/">WEB</a></h1>
     ${list}
+    <a href ="/create">create</a>
     ${body}  
   </body>
   </html>`
@@ -30,7 +31,8 @@ function templateList(filelist){
   list = list + '</ul>';
   return list;
 }
-function resSuccess(template) {
+//respones도 보내야한다.
+function resSuccess(template,response) {
   response.writeHead(200);
   response.end(template);
 }
@@ -40,6 +42,7 @@ var app = http.createServer(function (request, response) {
   var _url = request.url;
   var queryData = url.parse(_url, true).query;
   var pathName = url.parse(_url, true).pathname;
+  
   if (pathName === '/') {
     if (queryData.id === undefined) {
       fs.readdir('./data', (err, filelist) => {
@@ -48,7 +51,7 @@ var app = http.createServer(function (request, response) {
         let body = `<h2>${title}</h2>${description}`
         let list = templateList(filelist);
         var template = templateHTML(title, list, body);
-        resSuccess(template);
+        resSuccess(template,response);
       });
     } else {
       fs.readdir('./data', (err, filelist) => {
@@ -57,14 +60,33 @@ var app = http.createServer(function (request, response) {
           let body = `<h2>${title}</h2>${description}`
           let list = templateList(filelist);
           var template = templateHTML(title, list, body);
-          resSuccess(template);
+          resSuccess(template,response);
         });
       });
     }
+  } else if(pathName ==='/create'){
+    fs.readdir('./data', (err, filelist) => {
+      let title = 'WEB - Create';
+      let body = `<form action="http://localhost:3080/process_create" method="post">
+      <p>
+      <input type="text" name="title" placeholder="title">
+      </p>
+      <p>
+      <textarea name="description" placeholder="description"></textarea>
+      </p>     
+      <p>
+      <input type="submit" value="Submit">
+      </p>
+      </form>
+      `
+      let list = templateList(filelist);
+      var template = templateHTML(title, list, body);
+      resSuccess(template,response);
+    });
   } else {
     response.writeHead(404);
     response.end(ERROR_MESG);
   }
 });
-app.listen(3001);
+app.listen(3080);
 //포트번호
