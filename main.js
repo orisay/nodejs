@@ -7,35 +7,36 @@ var qs = require('querystring')
 
 const ERROR_MESG = "NOT FOUND";
 const SUCCESS_MESG = "SUCCESS";
-//모듈(그룹핑)
-function templateHTML(title, list, body, control) {
-  return `
-  <!doctype html>
-  <html>
-  <head>
-    <title>WEB1 - ${title}</title>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <h1><a href="/">WEB</a></h1>
-    ${list}
-    ${control}
-    ${body}  
-  </body>
-  </html>`
 
-}
+let template = {
+  html: function (title, list, body, control) {
+    return `
+    <!doctype html>
+    <html>
+    <head>
+      <title>WEB1 - ${title}</title>
+      <meta charset="utf-8">
+    </head>
+    <body>
+      <h1><a href="/">WEB</a></h1>
+      ${list}
+      ${control}
+      ${body}  
+    </body>
+    </html>`
 
-function templateList(filelist) {
-  let list = '<ul>';
-  let i = 0;
-  while (i < filelist.length) {
-    list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-    i = i + 1;
-  }
-  list = list + '</ul>';
-  return list;
-}
+  },
+  list: function (filelist) {
+    let list = '<ul>';
+    let i = 0;
+    while (i < filelist.length) {
+      list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+      i = i + 1;
+    }
+    list = list + '</ul>';
+    return list;
+  },
+};
 //respones도 보내야한다.
 function resSuccess(template, response) {
   response.writeHead(200);
@@ -55,19 +56,23 @@ var app = http.createServer(function (request, response) {
         let description = "Hello node.js";
         let body = `<h2>${title}</h2>${description}
         `;
-
         let control = `<a href ="/create">create</a>
        `;
-        let list = templateList(filelist);
-        var template = templateHTML(title, list, body, control);
-        resSuccess(template, response);
+
+        // let list = templateList(filelist);
+        // var template = templateHTML(title, list, body, control);
+
+        let list = template.list(filelist);
+        let html = template.html(title, list, body, control);
+        resSuccess(html, response);
+
       });
     } else {
       fs.readdir('./data', (err, filelist) => {
         fs.readFile(`data/${queryData.id}`, 'UTF-8', (err, description) => {
           let title = queryData.id;
           let body = `<h2>${title}</h2>${description}`
-          let list = templateList(filelist);
+          let list = template.list(filelist);
           let control = `<a href ="/create">create</a>
           <a href ="/update?id=${title}">update</a>
           <form action="delete_process" method="post"> 
@@ -75,8 +80,8 @@ var app = http.createServer(function (request, response) {
           <input type = "submit" value="delete">
           </form>
           `;
-          var template = templateHTML(title, list, body, control);
-          resSuccess(template, response);
+          let html = template.html(title, list, body, control);
+          resSuccess(html, response);
         });
       });
     }
@@ -95,15 +100,15 @@ var app = http.createServer(function (request, response) {
       </p>
       </form>
       `
-      let list = templateList(filelist);
-      var template = templateHTML(title, list, body, "");
-      resSuccess(template, response);
+      let list = template.list(filelist);
+      var html = template.html(title, list, body, "");
+      resSuccess(html, response);
     });
   } else if (pathName === '/update') {
     fs.readdir('./data', (err, filelist) => {
       fs.readFile(`data/${queryData.id}`, 'UTF-8', (err, description) => {
         let title = queryData.id;
-        let list = templateList(filelist);
+        let list = template.list(filelist);
 
         let control = `<a href ="/create">create</a><a href ="/update?id=${title}">update</a>`;
 
@@ -120,8 +125,8 @@ var app = http.createServer(function (request, response) {
         </p>
         </form>`;
 
-        var template = templateHTML(title, list, body, control);
-        resSuccess(template, response);
+        let html = template.html(title, list, body, control);
+        resSuccess(html, response);
       });
     });
   } else if (pathName === "/update_process") {
@@ -157,10 +162,10 @@ var app = http.createServer(function (request, response) {
         if (err) throw err;
         response.writeHead(302, {
           Location: `/`
-          });
-          response.end();
-          })
-         
+        });
+        response.end();
+      })
+
     });
   } else if (pathName === '/create_process') {
     let body = '';
@@ -190,7 +195,6 @@ var app = http.createServer(function (request, response) {
     });
 
   } else {
-    console.log(err)
     response.writeHead(404);
     response.end(ERROR_MESG);
   }
